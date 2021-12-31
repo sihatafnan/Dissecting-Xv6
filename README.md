@@ -20,7 +20,7 @@ Add two lines at the top of this file
 ```
 
 Now quit from the qemu terminal pressing `cntrl+A` , release and then type x immediately(as you can see it's a tedious task and we will create a system call to exit from the terminal).Then run `make qemu-nox` again and see the result now
-![](2.png)
+![](images/2.png)
 
 #### Adding a System call
 Let's create a system call to exit from the qemu terminal.We name it as `shutdown`.So we want to do something that would enable us to exit from the terminal by just writing the command `shutdown`.
