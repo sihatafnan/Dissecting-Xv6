@@ -22,6 +22,7 @@ Add two lines at the top of this file
 ```
 
 Now quit from the qemu terminal pressing `cntrl+A` , release and then type x immediately(as you can see it's a tedious task and we will create a system call to exit from the terminal).Then run `make qemu-nox` again and see the result now
+
 ![](images/2.png)
 
 ### Adding a System call
@@ -92,6 +93,7 @@ void sys_shutdown(void){
 }
 ```
 If everything's fine so far,then you can exit from qemu , run `make qemu-nox` and see the available sytem calls by running `ls`.Run the command `shutdown` and you will see the terminal exiting.
+
 ![](images/3.png)
 
 **NB**:I have already implemented few more sytem calls.You won't see add,incr,getsize etc for now if those aren't implemented.
@@ -167,6 +169,7 @@ int sys_incr(void){
 }
 ```
 Now exiting and running `make-qemu-nox` again will enable you to use `incr` command.
+
 ![](images/4.png)
 
 ### System Call to Add multiple numbers
@@ -259,6 +262,7 @@ Add ```int add(struct mystat*);```
 
 
 Now exiting and running `make-qemu-nox` again will enable you to use `add` command.
+
 ![](images/5.png)
 
 
