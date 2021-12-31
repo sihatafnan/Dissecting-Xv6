@@ -11,10 +11,12 @@ After qemu is being launched , you will see following system calls by running `l
 
 We can modify the source code and see the effects instantly.Lets say we want to replace the `$` sign with something else.To do this , go to `sh.c` file and change inside `getcmd` method.
 
-```printf(2, ANSI_COLOR_GREEN "afnan@Xv6:$ " ANSI_COLOR_RESET);```
+```cpp
+printf(2, ANSI_COLOR_GREEN "afnan@Xv6:$ " ANSI_COLOR_RESET);
+```
 
 Add two lines at the top of this file
-```
+```cpp
 #define ANSI_COLOR_GREEN   "\x1b[32m"
 #define ANSI_COLOR_RESET   "\x1b[0m"
 ```
@@ -22,11 +24,11 @@ Add two lines at the top of this file
 Now quit from the qemu terminal pressing `cntrl+A` , release and then type x immediately(as you can see it's a tedious task and we will create a system call to exit from the terminal).Then run `make qemu-nox` again and see the result now
 ![](images/2.png)
 
-#### Adding a System call
+### Adding a System call
 Let's create a system call to exit from the qemu terminal.We name it as `shutdown`.So we want to do something that would enable us to exit from the terminal by just writing the command `shutdown`.
 
 First create a file named `shutdown.c`.
-```
+```cpp
 #include "types.h"
 #include "stat.h"
 #include "user.h"
@@ -41,7 +43,7 @@ int main(int argc, char * argv[])
 Notice that to print anything in console , we need to add a file descriptor as the first parameter of printf unlike C language.
 
 Then in Makefile , add it in the UPROGS
-```
+```cpp
 UPROGS=\
 	_cat\
 	_echo\
@@ -61,7 +63,7 @@ UPROGS=\
  	_shutdown\
 ```
 Add it also in EXTRA
-```
+```cpp
 EXTRA=\
 	mkfs.c ulib.c user.h cat.c echo.c forktest.c grep.c kill.c\
 	ln.c ls.c mkdir.c rm.c stressfs.c usertests.c wc.c zombie.c shutdown.c\
@@ -83,7 +85,7 @@ Add the following line at the end
 Add ```void shutdown(void);```
 
 Now,there are two files which contain the methods for system calls.`sysfile.c` contains methods related to files and `sysproc.c` contains methods related to processes.We have to write a new method named `sys_shutdown` in `sysproc.c`.
-```
+```cpp
 void sys_shutdown(void){
   outw(0xB004, 0x0|0x2000);
   outw(0x604, 0x0|0x2000);
@@ -94,9 +96,9 @@ If everything's fine so far,then you can exit from qemu , run `make qemu-nox` an
 
 **NB**:I have already implemented few more sytem calls.You won't see add,incr,getsize etc for now if those aren't implemented.
 
-#### System call to increment a number
+### System call to increment a number
 First create a `incr.c` file
-```
+```cpp
 #include "types.h"
 #include "user.h"
 #include "fcntl.h"
@@ -146,7 +148,7 @@ Then in the next block , add
 ```[SYS_incr] sys_incr,```
 * **syscall.c**
 Add the following line at the end
-```#define SYS_incr 24```
+```#define SYS_incr 23```
 * **usys.S**
 Add the following line at the end
 ```SYSCALL(incr)```
@@ -154,7 +156,7 @@ Add the following line at the end
 Add ```int incr(int);```
 
 Then add a method in `sysproc.c`
-```
+```cpp
 int sys_incr(void){
   int num;
   argint(0,&num); //retrieving first integer argument
@@ -167,7 +169,97 @@ int sys_incr(void){
 Now exiting and running `make-qemu-nox` again will enable you to use `incr` command.
 ![](images/4.png)
 
+### System Call to Add multiple numbers
+Suppose we want a system call so that `add 2 5 -1 4` will return us `10`.There can be as many numbers as arguments.Now here is an issue.How to pass multiple arguments from user space to kernel space?In case of `incr` we used `argint` method to retrieve the argument but what to do when there are multiple values?
 
+We need to use a structure.Xv6 has a file `stat.h` dealing with structures.Define a new structure in that file.
+```cpp
+struct mystat {
+  int *nums;
+  int sz;
+};
+```
+In `sysproc.c` add the following method and make sure you add the header file `stat.h`. 
+```cpp
+int sys_add(void){
+  struct mystat *ct;
+  argptr (0 , (void*)&ct ,sizeof(*ct));
+  int s = 0;
+  int i;
+  for(i=0;i<ct->sz;i++){
+    s+=ct->nums[i];
+    //cprintf("%d " , ct->nums[i]);
+  }
+  return s; 
+}
+```
+Create a new file `add.c`
+```cpp
+#include "types.h"
+#include "user.h"
+#include "fcntl.h"
+#include "stat.h"
+
+//added by afnan
+//converts string to int
+int my_atoi(char *str)
+{
+    int i;
+    int sign;
+    int val;
+    int nbr;
+
+    i = 0;
+    sign = 1;
+    val = 0;
+    nbr = 0;
+    if (str[0] == '-')
+    {
+        sign = -1;
+        str++;
+    }
+    i = 0;
+    while(str[i] >= '0' && str[i] <= '9' && str[i] != '\0')
+    {
+        nbr = (int) (str[i] - '0');
+        val = (val * 10) + nbr;
+        i++;
+    }
+    i++;
+    return (val * sign);
+}
+
+int main(int argc , char * argv[]){
+    struct mystat *ct = malloc (sizeof(struct mystat));
+    ct->sz = argc - 1;
+    int i;
+    for(i = 1;i<argc;i++){
+        //printf(1,"%d->" , my_atoi(argv[i]));
+        ct->nums[i-1] = my_atoi(argv[i]);
+    }
+    printf(1 , "%d\n" , add(ct));
+    exit();
+}
+```
+Now modify following files accordingly
+
+* **syscall.c**
+Add the following line where similar lines exists
+```extern int sys_add(void);```
+Then in the next block , add
+```[SYS_add] sys_add,```
+* **syscall.c**
+Add the following line at the end
+```#define SYS_add 24```
+* **usys.S**
+Add the following line at the end
+```SYSCALL(add)```
+* **user.h**
+Add ```int add(struct mystat*);```
+
+
+Now exiting and running `make-qemu-nox` again will enable you to use `add` command.
+![](images/5.png)
 
 
 
