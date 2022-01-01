@@ -100,15 +100,10 @@ If everything's fine so far,then you can exit from qemu , run `make qemu-nox` an
 **NB**:I have already implemented few more sytem calls.You won't see add,incr,getsize etc for now if those aren't implemented.
 
 ### System call to increment a number
-First create a `incr.c` file
+First of all , modify the `atoi` function in `ulib.c` file so that it handles negative numbers too.
 ```cpp
-#include "types.h"
-#include "user.h"
-#include "fcntl.h"
-
-//added by afnan
-//converts string to int
-int my_atoi(char *str)
+int
+atoi(const char *s)
 {
     int i;
     int sign;
@@ -119,22 +114,27 @@ int my_atoi(char *str)
     sign = 1;
     val = 0;
     nbr = 0;
-    if (str[0] == '-')
+    if (s[0] == '-')
     {
         sign = -1;
-        str++;
+        s++;
     }
     i = 0;
-    while(str[i] >= '0' && str[i] <= '9' && str[i] != '\0')
+    while(s[i] >= '0' && s[i] <= '9' && s[i] != '\0')
     {
-        nbr = (int) (str[i] - '0');
+        nbr = (int) (s[i] - '0');
         val = (val * 10) + nbr;
         i++;
     }
     i++;
     return (val * sign);
 }
-
+```
+Then create a `incr.c` file
+```cpp
+#include "types.h"
+#include "user.h"
+#include "fcntl.h"
 
 //give command : incr 7
 //it will output 8
@@ -203,35 +203,6 @@ Create a new file `add.c`
 #include "user.h"
 #include "fcntl.h"
 #include "stat.h"
-
-//added by afnan
-//converts string to int
-int my_atoi(char *str)
-{
-    int i;
-    int sign;
-    int val;
-    int nbr;
-
-    i = 0;
-    sign = 1;
-    val = 0;
-    nbr = 0;
-    if (str[0] == '-')
-    {
-        sign = -1;
-        str++;
-    }
-    i = 0;
-    while(str[i] >= '0' && str[i] <= '9' && str[i] != '\0')
-    {
-        nbr = (int) (str[i] - '0');
-        val = (val * 10) + nbr;
-        i++;
-    }
-    i++;
-    return (val * sign);
-}
 
 int main(int argc , char * argv[]){
     struct mystat *ct = malloc (sizeof(struct mystat));
