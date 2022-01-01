@@ -237,6 +237,43 @@ Now exiting and running `make-qemu-nox` again will enable you to use `add` comma
 
 ![](images/5.png)
 
+### System Call to generate substring
+Suppose we want to generate substring from a string specifying start index and substring length.`substr alupotol 3 5` will output `potol`.Let's add a new function in `sysproc.c`
+```cpp
+char* sys_substr(void){
+  char *str;
+  int start_idx , len;
+  
+  argint(1 , &start_idx);
+  argint(2 , &len);
+  argstr(0 , &str);
+  char *s = &str[start_idx];
+  int i;
+  int k = 1;
+  
+  for(i = start_idx+1 ; i < start_idx+len ; i++){
+    s[k++] = str[i];
+    
+  }
+  //cprintf("%s\n" , s);
+  return s;
+}
+```
+And corresponding `substr.c` file
+```cpp
+#include "types.h"
+#include "user.h"
+#include "stat.h"
 
+int main(int argc , char * argv[]){
+    char *s = argv[1];
+    int start_idx = atoi(argv[2]);
+    int len = atoi(argv[3]);
+    printf(1 , "%s" , substr(s , start_idx , len));
+    exit();
+}
+```
+Adding this system call's signature to other files as shown before will enable us to use the system call
 
+![](images/6.png)
 
