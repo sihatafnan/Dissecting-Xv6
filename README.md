@@ -139,7 +139,7 @@ Then create a `incr.c` file
 //give command : incr 7
 //it will output 8
 int main(int argc , char * argv[]){
-    printf(1 , "%d\n" , incr(my_atoi(argv[1])));
+    printf(1 , "%d\n" , incr(atoi(argv[1])));
     exit();
 }
 ```
@@ -209,8 +209,8 @@ int main(int argc , char * argv[]){
     ct->sz = argc - 1;
     int i;
     for(i = 1;i<argc;i++){
-        //printf(1,"%d->" , my_atoi(argv[i]));
-        ct->nums[i-1] = my_atoi(argv[i]);
+        //printf(1,"%d->" , atoi(argv[i]));
+        ct->nums[i-1] = atoi(argv[i]);
     }
     printf(1 , "%d\n" , add(ct));
     exit();
