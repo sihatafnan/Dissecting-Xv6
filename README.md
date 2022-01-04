@@ -77,7 +77,7 @@ Add the following line where similar lines exists
 ```extern int sys_shutdown(void);```
 Then in the next block , add
 ```[SYS_shutdown] sys_shutdown,```
-* **syscall.c**
+* **syscall.h**
 Add the following line at the end
 ```#define SYS_shutdown 23```
 * **usys.S**
@@ -149,7 +149,7 @@ Add the following line where similar lines exists
 ```extern int sys_incr(void);```
 Then in the next block , add
 ```[SYS_incr] sys_incr,```
-* **syscall.c**
+* **syscall.h**
 Add the following line at the end
 ```#define SYS_incr 23```
 * **usys.S**
@@ -223,7 +223,7 @@ Add the following line where similar lines exists
 ```extern int sys_add(void);```
 Then in the next block , add
 ```[SYS_add] sys_add,```
-* **syscall.c**
+* **syscall.h**
 Add the following line at the end
 ```#define SYS_add 24```
 * **usys.S**
@@ -238,7 +238,7 @@ Now exiting and running `make-qemu-nox` again will enable you to use `add` comma
 ![](images/5.png)
 
 ### System Call to generate substring
-Suppose we want to generate substring from a string specifying start index and substring length.`substr alupotol 3 5` will output `potol`.Let's add a new function in `sysproc.c`
+Suppose we want to generate substring from a string by specifying start index and substring length.`substr alupotol 3 5` will output `potol`.Let's add a new function in `sysproc.c`
 ```cpp
 char* sys_substr(void){
   char *str;
