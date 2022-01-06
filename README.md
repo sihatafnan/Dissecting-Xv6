@@ -230,7 +230,7 @@ Add the following line at the end
 Add the following line at the end
 ```SYSCALL(add)```
 * **user.h**
-Add ```int add(struct mystat*);```
+Add ```int add(struct mystat*);``` and add `struct mystat;` at the top. 
 
 
 Now exiting and running `make-qemu-nox` again will enable you to use `add` command.
