@@ -1,3 +1,4 @@
+
 # Dissecting-Xv6
 You will get the latest modified verson of Xv6 according to this repository [here](https://github.com/AfnanCSE98/xv6-public)
 ### Installation in Debian System
@@ -108,25 +109,23 @@ atoi(const char *s)
     int i;
     int sign;
     int val;
-    int nbr;
+  
 
     i = 0;
     sign = 1;
     val = 0;
-    nbr = 0;
-    if (s[0] == '-')
+
+    if (s[i] == '-')
     {
         sign = -1;
-        s++;
-    }
-    i = 0;
-    while(s[i] >= '0' && s[i] <= '9' && s[i] != '\0')
-    {
-        nbr = (int) (s[i] - '0');
-        val = (val * 10) + nbr;
         i++;
     }
-    i++;
+    
+    while(s[i] >= '0' && s[i] <= '9' && s[i] != '\0')
+    {
+        val = val * 10 + (s[i]-'0');
+        i++;
+    }
     return (val * sign);
 }
 ```
@@ -157,6 +156,9 @@ Add the following line at the end
 ```SYSCALL(incr)```
 * **user.h**
 Add ```int incr(int);```
+* **Makefile**
+Add  ```_incr``` in UPROGS
+Add ```incr.c``` in EXTRA
 
 Then add a method in `sysproc.c`
 ```cpp
