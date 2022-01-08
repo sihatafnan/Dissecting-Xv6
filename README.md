@@ -313,6 +313,7 @@ char* sys_substr(void){
     s[k++] = str[i];
     
   }
+  s[k]='\0';
   //cprintf("%s\n" , s);
   return s;
 }
