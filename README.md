@@ -26,6 +26,64 @@ Now quit from the qemu terminal pressing `cntrl+A` , release and then type x imm
 
 ![](images/2.png)
 
+### 100% CPU all the time ?
+The two CPU usage always seem to be 100%.To resolve this,do following modification.
+
+In `proc.c` , modify `schduler` function 
+```cpp
+void
+scheduler(void)
+{
+  struct proc *p;
+  int ran;
+  struct cpu *c = mycpu();
+  c->proc = 0;
+
+  for(;;){
+    // Enable interrupts on this processor.
+    sti();
+
+    // Loop over process table looking for process to run.
+    acquire(&ptable.lock);
+    for(ran = 0, p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+      if(p->state != RUNNABLE)
+        continue;
+
+      // Switch to chosen process.  It is the process's job
+      // to release ptable.lock and then reacquire it
+      // before jumping back to us.
+      ran = 1;
+      c->proc = p;
+      switchuvm(p);
+      p->state = RUNNING;
+
+      swtch(&(c->scheduler), p->context);
+      switchkvm();
+
+      // Process is done running for now.
+      // It should have changed its p->state before coming back.
+      c->proc = 0;
+
+
+    }
+    release(&ptable.lock);
+
+    if (ran == 0) {
+      halt();
+    }
+  }
+}
+```
+and in `x86.h` , add a `halt` function
+```cpp
+
+static inline void
+halt()
+{
+  asm volatile("hlt" : : );
+}
+```
+
 ### Adding a System call
 Let's create a system call to exit from the qemu terminal.We name it as `shutdown`.So we want to do something that would enable us to exit from the terminal by just writing the command `shutdown`.
 
