@@ -277,3 +277,56 @@ Adding this system call's signature to other files as shown before will enable u
 
 ![](images/6.png)
 
+### System call to sort integers
+We want to give a command `sort 3 5 2 7 4` and expect the output `2 3 4 5 7`.To add a syscall like this , create a `sort.c` file
+```cpp
+#include "types.h"
+#include "user.h"
+#include "fcntl.h"
+#include "stat.h"
+
+int main(int argc , char * argv[]){
+    struct mystat *ct = malloc (sizeof(struct mystat));
+    ct->sz = argc - 1;
+    int i;
+    for(i = 1;i<argc;i++){
+        ct->nums[i-1] = atoi(argv[i]);
+    }
+
+    int *sorted_nums = sort(ct);
+
+    for(int i=0;i<ct->sz;i++){
+        printf(1 , "%d " , *(sorted_nums+i));
+    }
+    printf(1 , "\n");
+    exit();
+}
+```
+And corresponding `sys_sort` function in `sysproc.c` file
+```cpp
+int* sys_sort(void){
+  struct mystat *ct;
+  argptr (0 , (void*)&ct ,sizeof(*ct));
+  int n = ct->sz;
+ 
+  int temp, j, k;
+   
+  for (j = 0; j < n; ++j)
+  {
+    for (k = j + 1; k < n; ++k)
+    {
+        if (ct->nums[j] > ct->nums[k])
+        {
+          temp = ct->nums[j];
+          ct->nums[j] = ct->nums[k];
+          ct->nums[k] = temp;
+        }
+    }
+  }
+  return ct->nums;
+}
+```
+After modifying other files accordingly,you can use the command
+
+![](images/7.png)
+
