@@ -299,23 +299,22 @@ Now exiting and running `make-qemu-nox` again will enable you to use `add` comma
 Suppose we want to generate substring from a string by specifying start index and substring length.`substr alupotol 3 5` will output `potol`.Let's add a new function in `sysproc.c`
 ```cpp
 char* sys_substr(void){
-  char *str;
+  static char *str;
   int start_idx , len;
   
   argint(1 , &start_idx);
   argint(2 , &len);
   argstr(0 , &str);
-  char *s = &str[start_idx];
+  char* s = &str[0];
   int i;
-  int k = 1;
-  
-  for(i = start_idx+1 ; i < start_idx+len ; i++){
+  int k = 0;
+  for(i = start_idx ; i < start_idx+len ; i++){
     s[k++] = str[i];
-    
   }
-  //cprintf("%s\n" , s);
+  s[k]='\0';
   return s;
 }
+
 ```
 And corresponding `substr.c` file
 ```cpp
