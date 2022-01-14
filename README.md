@@ -27,6 +27,64 @@ Now quit from the qemu terminal pressing `cntrl+A` , release and then type x imm
 
 ![](images/2.png)
 
+### 100% CPU all the time ?
+The two CPU usage always seem to be 100%.To resolve this,do following modification.
+
+In `proc.c` , modify `schduler` function 
+```cpp
+void
+scheduler(void)
+{
+  struct proc *p;
+  int ran;
+  struct cpu *c = mycpu();
+  c->proc = 0;
+
+  for(;;){
+    // Enable interrupts on this processor.
+    sti();
+
+    // Loop over process table looking for process to run.
+    acquire(&ptable.lock);
+    for(ran = 0, p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+      if(p->state != RUNNABLE)
+        continue;
+
+      // Switch to chosen process.  It is the process's job
+      // to release ptable.lock and then reacquire it
+      // before jumping back to us.
+      ran = 1;
+      c->proc = p;
+      switchuvm(p);
+      p->state = RUNNING;
+
+      swtch(&(c->scheduler), p->context);
+      switchkvm();
+
+      // Process is done running for now.
+      // It should have changed its p->state before coming back.
+      c->proc = 0;
+
+
+    }
+    release(&ptable.lock);
+
+    if (ran == 0) {
+      halt();
+    }
+  }
+}
+```
+and in `x86.h` , add a `halt` function
+```cpp
+
+static inline void
+halt()
+{
+  asm volatile("hlt" : : );
+}
+```
+
 ### Adding a System call
 Let's create a system call to exit from the qemu terminal.We name it as `shutdown`.So we want to do something that would enable us to exit from the terminal by just writing the command `shutdown`.
 
@@ -243,23 +301,22 @@ Now exiting and running `make-qemu-nox` again will enable you to use `add` comma
 Suppose we want to generate substring from a string by specifying start index and substring length.`substr alupotol 3 5` will output `potol`.Let's add a new function in `sysproc.c`
 ```cpp
 char* sys_substr(void){
-  char *str;
+  static char *str;
   int start_idx , len;
   
   argint(1 , &start_idx);
   argint(2 , &len);
   argstr(0 , &str);
-  char *s = &str[start_idx];
+  char* s = &str[0];
   int i;
-  int k = 1;
-  
-  for(i = start_idx+1 ; i < start_idx+len ; i++){
+  int k = 0;
+  for(i = start_idx ; i < start_idx+len ; i++){
     s[k++] = str[i];
-    
   }
-  //cprintf("%s\n" , s);
+  s[k]='\0';
   return s;
 }
+
 ```
 And corresponding `substr.c` file
 ```cpp
@@ -278,4 +335,57 @@ int main(int argc , char * argv[]){
 Adding this system call's signature to other files as shown before will enable us to use the system call
 
 ![](images/6.png)
+
+### System call to sort integers
+We want to give a command `sort 3 5 2 7 4` and expect the output `2 3 4 5 7`.To add a syscall like this , create a `sort.c` file
+```cpp
+#include "types.h"
+#include "user.h"
+#include "fcntl.h"
+#include "stat.h"
+
+int main(int argc , char * argv[]){
+    struct mystat *ct = malloc (sizeof(struct mystat));
+    ct->sz = argc - 1;
+    int i;
+    for(i = 1;i<argc;i++){
+        ct->nums[i-1] = atoi(argv[i]);
+    }
+
+    int *sorted_nums = sort(ct);
+
+    for(int i=0;i<ct->sz;i++){
+        printf(1 , "%d " , *(sorted_nums+i));
+    }
+    printf(1 , "\n");
+    exit();
+}
+```
+And corresponding `sys_sort` function in `sysproc.c` file
+```cpp
+int* sys_sort(void){
+  struct mystat *ct;
+  argptr (0 , (void*)&ct ,sizeof(*ct));
+  int n = ct->sz;
+ 
+  int temp, j, k;
+   
+  for (j = 0; j < n; ++j)
+  {
+    for (k = j + 1; k < n; ++k)
+    {
+        if (ct->nums[j] > ct->nums[k])
+        {
+          temp = ct->nums[j];
+          ct->nums[j] = ct->nums[k];
+          ct->nums[k] = temp;
+        }
+    }
+  }
+  return ct->nums;
+}
+```
+After modifying other files accordingly,you can use the command
+
+![](images/7.png)
 
