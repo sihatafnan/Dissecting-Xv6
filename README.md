@@ -12,7 +12,7 @@ sudo apt install qemu-system-x86
 make qemu
 ```
 
-again. This time , it should work. Still, you might face problems like [this](https://stackoverflow.com/questions/70515788/booting-xv6-with-qemu) then [here](https://www.reddit.com/r/ManjaroLinux/comments/p4445x/help_xv6_installation_on_manjaro/) is a way around.
+This time , it should work. Still, you might face problems like [this](https://stackoverflow.com/questions/70515788/booting-xv6-with-qemu) then [here](https://www.reddit.com/r/ManjaroLinux/comments/p4445x/help_xv6_installation_on_manjaro/) is a way around.
 
 To run qemu in the same terminal you're using , run `make qemu-nox` instead of `make qemu`.
 
